@@ -517,6 +517,80 @@
             font-size: 0.8125rem;
         }
 
+        /* Agent Runs */
+        .runs-section {
+            margin-top: 2rem;
+            border-top: 1px solid var(--border);
+            padding-top: 2rem;
+        }
+
+        .runs-section h2 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+        }
+
+        .run-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .run-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .run-status-dot.success { background: var(--green); }
+        .run-status-dot.partial { background: var(--yellow); }
+        .run-status-dot.failed { background: var(--red); }
+
+        .run-info { flex: 1; }
+
+        .run-info .run-date {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .run-info .run-agent {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .run-metrics {
+            display: flex;
+            gap: 1.25rem;
+            font-size: 0.8125rem;
+        }
+
+        .run-metric {
+            text-align: center;
+        }
+
+        .run-metric .num {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .run-metric .lbl {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .run-errors {
+            font-size: 0.75rem;
+            color: var(--red);
+            margin-top: 0.25rem;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .header { padding: 1rem; }
@@ -664,6 +738,12 @@
                     <button class="btn btn-primary btn-sm" onclick="addComment()" style="align-self: flex-end;">Post</button>
                 </div>
             </div>
+        </div>
+
+        <!-- Agent Runs -->
+        <div class="runs-section" id="runs-section">
+            <h2>Agent Run History</h2>
+            <div id="runs-list"><div class="loading">Loading runs...</div></div>
         </div>
     </div>
 </div>
@@ -833,6 +913,7 @@ function showApp() {
     document.getElementById('app').style.display = 'block';
     document.getElementById('user-email').textContent = currentUser.email;
     loadRequests();
+    loadRuns();
 }
 
 // ============================================================
@@ -1220,12 +1301,70 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============================================================
+// AGENT RUNS
+// ============================================================
+async function loadRuns() {
+    const { data, error } = await db
+        .from('agent_runs')
+        .select('*')
+        .order('run_at', { ascending: false })
+        .limit(20);
+
+    if (error) {
+        document.getElementById('runs-list').innerHTML =
+            '<p style="color: var(--text-muted); font-size: 0.875rem;">Could not load agent runs.</p>';
+        return;
+    }
+
+    renderRuns(data || []);
+}
+
+function renderRuns(runs) {
+    const container = document.getElementById('runs-list');
+    if (runs.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.875rem;">No agent runs yet.</p>';
+        return;
+    }
+
+    container.innerHTML = runs.map(r => {
+        const date = new Date(r.run_at);
+        const timeStr = date.toLocaleString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+        const errHtml = r.errors && r.errors.length
+            ? `<div class="run-errors">${r.errors.map(e => escapeHtml(e)).join('; ')}</div>`
+            : '';
+
+        return `
+            <div class="run-card">
+                <div class="run-status-dot ${r.status}"></div>
+                <div class="run-info">
+                    <div class="run-date">${timeStr}</div>
+                    <div class="run-agent">${escapeHtml(r.agent_name)}</div>
+                    ${errHtml}
+                </div>
+                <div class="run-metrics">
+                    <div class="run-metric"><div class="num">${r.candidates_evaluated || 0}</div><div class="lbl">Evaluated</div></div>
+                    <div class="run-metric"><div class="num">${r.new_submitted || 0}</div><div class="lbl">Submitted</div></div>
+                    <div class="run-metric"><div class="num">${r.duplicates_skipped || 0}</div><div class="lbl">Duplicates</div></div>
+                    <div class="run-metric"><div class="num">${r.searches_performed || 0}</div><div class="lbl">Searches</div></div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ============================================================
 // REALTIME SUBSCRIPTION
 // ============================================================
 db
-    .channel('requests-changes')
+    .channel('all-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, () => {
         loadRequests();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'agent_runs' }, () => {
+        loadRuns();
     })
     .subscribe();
 
