@@ -744,7 +744,7 @@
 const SUPABASE_URL = 'https://dcrlgzwhcdjkviofjrhf.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_AFfMw42nWorpGHVIN7kfcQ_gaA5U1oH';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============================================================
 // STATE
@@ -758,13 +758,13 @@ let editMode = false;
 // AUTH
 // ============================================================
 async function init() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await db.auth.getSession();
     if (session) {
         currentUser = session.user;
         showApp();
     }
 
-    supabase.auth.onAuthStateChange((event, session) => {
+    db.auth.onAuthStateChange((event, session) => {
         if (session) {
             currentUser = session.user;
             showApp();
@@ -802,7 +802,7 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
     try {
         if (isSignUp) {
             const name = document.getElementById('auth-name').value;
-            const { error } = await supabase.auth.signUp({
+            const { error } = await db.auth.signUp({
                 email,
                 password,
                 options: { data: { full_name: name } }
@@ -810,7 +810,7 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
             if (error) throw error;
             showToast('Account created! Check your email for verification.', 'success');
         } else {
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            const { error } = await db.auth.signInWithPassword({ email, password });
             if (error) throw error;
         }
     } catch (err) {
@@ -820,7 +820,7 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
 });
 
 async function signOut() {
-    await supabase.auth.signOut();
+    await db.auth.signOut();
 }
 
 function showAuth() {
@@ -839,7 +839,7 @@ function showApp() {
 // REQUESTS CRUD
 // ============================================================
 async function loadRequests() {
-    const { data, error } = await supabase
+    const { data, error } = await db
         .from('requests')
         .select('*')
         .order('created_at', { ascending: false });
@@ -978,7 +978,7 @@ document.getElementById('request-form').addEventListener('submit', async (e) => 
             payload.requirements_url = document.getElementById('req-requirements-url').value.trim() || null;
             payload.updated_at = new Date().toISOString();
 
-            const { error } = await supabase
+            const { error } = await db
                 .from('requests')
                 .update(payload)
                 .eq('id', currentRequest.id);
@@ -990,7 +990,7 @@ document.getElementById('request-form').addEventListener('submit', async (e) => 
             payload.requested_by_email = currentUser.email;
             payload.requested_by_name = currentUser.user_metadata?.full_name || currentUser.email;
 
-            const { error } = await supabase
+            const { error } = await db
                 .from('requests')
                 .insert(payload);
             if (error) throw error;
@@ -1012,7 +1012,7 @@ async function deleteCurrentRequest() {
     if (!currentRequest) return;
     if (!confirm('Delete this request? This cannot be undone.')) return;
 
-    const { error } = await supabase
+    const { error } = await db
         .from('requests')
         .delete()
         .eq('id', currentRequest.id);
@@ -1103,7 +1103,7 @@ function showListView() {
 // COMMENTS
 // ============================================================
 async function loadComments(requestId) {
-    const { data, error } = await supabase
+    const { data, error } = await db
         .from('request_comments')
         .select('*')
         .eq('request_id', requestId)
@@ -1137,7 +1137,7 @@ async function addComment() {
     const text = input.value.trim();
     if (!text) return;
 
-    const { error } = await supabase
+    const { error } = await db
         .from('request_comments')
         .insert({
             request_id: currentRequest.id,
@@ -1222,7 +1222,7 @@ document.addEventListener('keydown', (e) => {
 // ============================================================
 // REALTIME SUBSCRIPTION
 // ============================================================
-supabase
+db
     .channel('requests-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, () => {
         loadRequests();
