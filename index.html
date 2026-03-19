@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Requirements Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-hover: #222632;
+            --border: #2a2e3b;
+            --text: #e4e4e7;
+            --text-muted: #8b8d98;
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --green: #22c55e;
+            --yellow: #eab308;
+            --red: #ef4444;
+            --orange: #f97316;
+            --blue: #3b82f6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Auth Screen */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .auth-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .auth-box h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-box p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            margin-bottom: 0.375rem;
+            color: var(--text-muted);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.875rem;
+            font-family: inherit;
+            transition: border-color 0.15s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        textarea { resize: vertical; min-height: 100px; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover { background: var(--accent-hover); }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover { background: var(--surface-hover); }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.1); }
+
+        .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
+
+        .btn-full { width: 100%; justify-content: center; }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        .auth-toggle a {
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .auth-toggle a:hover { text-decoration: underline; }
+
+        /* App Layout */
+        .app { display: none; }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .header h1 { font-size: 1.125rem; }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-email {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        .main { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-left {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            width: 260px;
+            padding-left: 2rem;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238b8d98' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: 0.625rem center;
+        }
+
+        .filter-select {
+            width: auto;
+            min-width: 130px;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+        }
+
+        .stat-card .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 0.25rem;
+        }
+
+        /* Request Table */
+        .requests-table {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        tr:hover td { background: var(--surface-hover); }
+
+        .clickable-row { cursor: pointer; }
+
+        /* Status Badge */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-new { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+        .badge-researching { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+        .badge-requirements_ready { background: rgba(234, 179, 8, 0.15); color: var(--yellow); }
+        .badge-in_review { background: rgba(249, 115, 22, 0.15); color: var(--orange); }
+        .badge-approved { background: rgba(34, 197, 94, 0.15); color: var(--green); }
+        .badge-rejected { background: rgba(239, 68, 68, 0.15); color: var(--red); }
+
+        .priority-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.375rem;
+        }
+
+        .priority-low { background: var(--green); }
+        .priority-medium { background: var(--yellow); }
+        .priority-high { background: var(--orange); }
+        .priority-critical { background: var(--red); }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 100;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 4rem 1rem;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .modal h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.25rem;
+            padding: 0.25rem;
+        }
+
+        .modal-close:hover { color: var(--text); }
+
+        /* Detail View */
+        .detail-view { display: none; }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+
+        .detail-header h2 { font-size: 1.375rem; }
+
+        .detail-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-meta-item .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .detail-meta-item .value {
+            margin-top: 0.25rem;
+            font-size: 0.9375rem;
+        }
+
+        .detail-description {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-description h3 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .detail-description p {
+            font-size: 0.9375rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        /* Comments */
+        .comments-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+        }
+
+        .comments-section h3 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .comment {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comment:last-of-type { border-bottom: none; }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.375rem;
+        }
+
+        .comment-author {
+            font-size: 0.8125rem;
+            font-weight: 600;
+        }
+
+        .comment-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .comment-body {
+            font-size: 0.875rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .add-comment {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .add-comment textarea {
+            flex: 1;
+            min-height: 60px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            z-index: 200;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast-success { background: var(--green); color: white; }
+        .toast-error { background: var(--red); color: white; }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state p { margin-top: 0.5rem; font-size: 0.875rem; }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+
+        /* API Token Section */
+        .api-token-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .api-token-section h3 {
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .token-display {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .token-display input {
+            flex: 1;
+            font-family: monospace;
+            font-size: 0.8125rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header { padding: 1rem; }
+            .main { padding: 1rem; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .toolbar-left { flex-direction: column; }
+            .search-input { width: 100%; }
+            th:nth-child(4), td:nth-child(4),
+            th:nth-child(5), td:nth-child(5) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Auth Screen -->
+<div id="auth-screen" class="auth-container">
+    <div class="auth-box">
+        <h1 id="auth-title">Sign In</h1>
+        <p id="auth-subtitle">Access the Extension Requirements Tracker</p>
+        <div id="auth-error" style="color: var(--red); font-size: 0.8125rem; margin-bottom: 1rem; display: none;"></div>
+        <form id="auth-form">
+            <div class="form-group" id="name-group" style="display: none;">
+                <label for="auth-name">Full Name</label>
+                <input type="text" id="auth-name" placeholder="Your name">
+            </div>
+            <div class="form-group">
+                <label for="auth-email">Email</label>
+                <input type="email" id="auth-email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="auth-password">Password</label>
+                <input type="password" id="auth-password" placeholder="Min 6 characters" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full" id="auth-submit">Sign In</button>
+        </form>
+        <div class="auth-toggle">
+            <span id="auth-toggle-text">Don't have an account?</span>
+            <a id="auth-toggle-link" onclick="toggleAuthMode()">Sign Up</a>
+        </div>
+    </div>
+</div>
+
+<!-- App -->
+<div id="app" class="app">
+    <!-- Header -->
+    <div class="header">
+        <h1>Extension Requirements Tracker</h1>
+        <div class="header-right">
+            <span class="user-email" id="user-email"></span>
+            <button class="btn btn-secondary btn-sm" onclick="signOut()">Sign Out</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+        <!-- Stats -->
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="label">Total</div>
+                <div class="value" id="stat-total">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">New</div>
+                <div class="value" id="stat-new">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Researching</div>
+                <div class="value" id="stat-researching">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Ready</div>
+                <div class="value" id="stat-ready">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Approved</div>
+                <div class="value" id="stat-approved">0</div>
+            </div>
+        </div>
+
+        <!-- List View -->
+        <div id="list-view">
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <input type="text" class="search-input" id="search-input" placeholder="Search requests...">
+                    <select class="filter-select" id="status-filter">
+                        <option value="">All Statuses</option>
+                        <option value="new">New</option>
+                        <option value="researching">Researching</option>
+                        <option value="requirements_ready">Requirements Ready</option>
+                        <option value="in_review">In Review</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                    <select class="filter-select" id="priority-filter">
+                        <option value="">All Priorities</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="openNewRequestModal()">+ New Request</button>
+            </div>
+
+            <div class="requests-table" id="requests-table">
+                <div class="loading">Loading requests...</div>
+            </div>
+        </div>
+
+        <!-- Detail View -->
+        <div id="detail-view" class="detail-view">
+            <div class="detail-header">
+                <div>
+                    <button class="btn btn-secondary btn-sm" onclick="showListView()" style="margin-bottom: 0.75rem;">&#8592; Back</button>
+                    <h2 id="detail-title"></h2>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-secondary btn-sm" onclick="openEditRequestModal()">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteCurrentRequest()">Delete</button>
+                </div>
+            </div>
+
+            <div class="detail-meta" id="detail-meta"></div>
+
+            <div class="detail-description">
+                <h3>Description</h3>
+                <p id="detail-description"></p>
+            </div>
+
+            <div class="detail-description" id="detail-api-info-section" style="display: none;">
+                <h3>API / Integration Details</h3>
+                <p id="detail-api-info"></p>
+            </div>
+
+            <div class="detail-description" id="detail-requirements-url-section" style="display: none;">
+                <h3>Requirements Document</h3>
+                <p><a id="detail-requirements-url" href="#" target="_blank" style="color: var(--accent);"></a></p>
+            </div>
+
+            <div class="comments-section">
+                <h3>Comments</h3>
+                <div id="comments-list"></div>
+                <div class="add-comment">
+                    <textarea id="comment-input" placeholder="Add a comment..."></textarea>
+                    <button class="btn btn-primary btn-sm" onclick="addComment()" style="align-self: flex-end;">Post</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New/Edit Request Modal -->
+<div class="modal-overlay" id="request-modal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h2 id="modal-title">New Extension Request</h2>
+        <form id="request-form">
+            <div class="form-group">
+                <label for="req-title">Title *</label>
+                <input type="text" id="req-title" placeholder="e.g., ServiceNow Integration" required>
+            </div>
+            <div class="form-group">
+                <label for="req-target-service">Target Service *</label>
+                <input type="text" id="req-target-service" placeholder="e.g., ServiceNow, Jira, AWS S3">
+            </div>
+            <div class="form-group">
+                <label for="req-integration-type">Integration Type</label>
+                <select id="req-integration-type">
+                    <option value="rest_api">REST API</option>
+                    <option value="cli">CLI Tool</option>
+                    <option value="sdk">SDK / Library</option>
+                    <option value="database">Database</option>
+                    <option value="message_queue">Message Queue</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="req-priority">Priority</label>
+                <select id="req-priority">
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="req-description">Description *</label>
+                <textarea id="req-description" placeholder="Describe what this extension should do, what operations it needs to support, and any relevant context..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="req-api-info">API / Documentation Links</label>
+                <textarea id="req-api-info" placeholder="Paste API documentation URLs, authentication details, or any technical specs..." style="min-height: 70px;"></textarea>
+            </div>
+            <!-- Status field - only visible in edit mode -->
+            <div class="form-group" id="status-group" style="display: none;">
+                <label for="req-status">Status</label>
+                <select id="req-status">
+                    <option value="new">New</option>
+                    <option value="researching">Researching</option>
+                    <option value="requirements_ready">Requirements Ready</option>
+                    <option value="in_review">In Review</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+            <div class="form-group" id="requirements-url-group" style="display: none;">
+                <label for="req-requirements-url">Requirements Document URL</label>
+                <input type="url" id="req-requirements-url" placeholder="https://github.com/...">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="modal-submit">Create Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIGURATION - Replace these with your Supabase project values
+// ============================================================
+const SUPABASE_URL = 'https://dcrlgzwhcdjkviofjrhf.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_AFfMw42nWorpGHVIN7kfcQ_gaA5U1oH';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ============================================================
+// STATE
+// ============================================================
+let currentUser = null;
+let allRequests = [];
+let currentRequest = null;
+let editMode = false;
+
+// ============================================================
+// AUTH
+// ============================================================
+async function init() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        currentUser = session.user;
+        showApp();
+    }
+
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+            currentUser = session.user;
+            showApp();
+        } else {
+            currentUser = null;
+            showAuth();
+        }
+    });
+}
+
+let isSignUp = false;
+
+function toggleAuthMode() {
+    isSignUp = !isSignUp;
+    document.getElementById('auth-title').textContent = isSignUp ? 'Create Account' : 'Sign In';
+    document.getElementById('auth-subtitle').textContent = isSignUp
+        ? 'Create your account to submit requests'
+        : 'Access the Extension Requirements Tracker';
+    document.getElementById('auth-submit').textContent = isSignUp ? 'Create Account' : 'Sign In';
+    document.getElementById('auth-toggle-text').textContent = isSignUp
+        ? 'Already have an account?'
+        : "Don't have an account?";
+    document.getElementById('auth-toggle-link').textContent = isSignUp ? 'Sign In' : 'Sign Up';
+    document.getElementById('name-group').style.display = isSignUp ? 'block' : 'none';
+    document.getElementById('auth-error').style.display = 'none';
+}
+
+document.getElementById('auth-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    const errorEl = document.getElementById('auth-error');
+    errorEl.style.display = 'none';
+
+    try {
+        if (isSignUp) {
+            const name = document.getElementById('auth-name').value;
+            const { error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: { data: { full_name: name } }
+            });
+            if (error) throw error;
+            showToast('Account created! Check your email for verification.', 'success');
+        } else {
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+        }
+    } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = 'block';
+    }
+});
+
+async function signOut() {
+    await supabase.auth.signOut();
+}
+
+function showAuth() {
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+}
+
+function showApp() {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('user-email').textContent = currentUser.email;
+    loadRequests();
+}
+
+// ============================================================
+// REQUESTS CRUD
+// ============================================================
+async function loadRequests() {
+    const { data, error } = await supabase
+        .from('requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        showToast('Failed to load requests: ' + error.message, 'error');
+        return;
+    }
+
+    allRequests = data || [];
+    updateStats();
+    renderRequests();
+}
+
+function updateStats() {
+    document.getElementById('stat-total').textContent = allRequests.length;
+    document.getElementById('stat-new').textContent = allRequests.filter(r => r.status === 'new').length;
+    document.getElementById('stat-researching').textContent = allRequests.filter(r => r.status === 'researching').length;
+    document.getElementById('stat-ready').textContent = allRequests.filter(r => r.status === 'requirements_ready').length;
+    document.getElementById('stat-approved').textContent = allRequests.filter(r => r.status === 'approved').length;
+}
+
+function getFilteredRequests() {
+    const search = document.getElementById('search-input').value.toLowerCase();
+    const statusFilter = document.getElementById('status-filter').value;
+    const priorityFilter = document.getElementById('priority-filter').value;
+
+    return allRequests.filter(r => {
+        const matchSearch = !search ||
+            r.title.toLowerCase().includes(search) ||
+            r.target_service.toLowerCase().includes(search) ||
+            (r.description && r.description.toLowerCase().includes(search));
+        const matchStatus = !statusFilter || r.status === statusFilter;
+        const matchPriority = !priorityFilter || r.priority === priorityFilter;
+        return matchSearch && matchStatus && matchPriority;
+    });
+}
+
+function renderRequests() {
+    const filtered = getFilteredRequests();
+    const container = document.getElementById('requests-table');
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No requests found</h3>
+                <p>${allRequests.length === 0 ? 'Create your first extension request to get started.' : 'Try adjusting your filters.'}</p>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Type</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filtered.map(r => `
+                    <tr class="clickable-row" onclick="showDetail('${r.id}')">
+                        <td><strong>${escapeHtml(r.title)}</strong></td>
+                        <td>${escapeHtml(r.target_service || '-')}</td>
+                        <td><span class="badge badge-${r.status}">${formatStatus(r.status)}</span></td>
+                        <td><span class="priority-dot priority-${r.priority}"></span>${capitalize(r.priority)}</td>
+                        <td>${formatIntegrationType(r.integration_type)}</td>
+                        <td>${formatDate(r.created_at)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>`;
+}
+
+// Filters
+document.getElementById('search-input').addEventListener('input', renderRequests);
+document.getElementById('status-filter').addEventListener('change', renderRequests);
+document.getElementById('priority-filter').addEventListener('change', renderRequests);
+
+// ============================================================
+// CREATE / EDIT
+// ============================================================
+function openNewRequestModal() {
+    editMode = false;
+    document.getElementById('modal-title').textContent = 'New Extension Request';
+    document.getElementById('modal-submit').textContent = 'Create Request';
+    document.getElementById('status-group').style.display = 'none';
+    document.getElementById('requirements-url-group').style.display = 'none';
+    document.getElementById('request-form').reset();
+    document.getElementById('request-modal').classList.add('active');
+}
+
+function openEditRequestModal() {
+    if (!currentRequest) return;
+    editMode = true;
+    document.getElementById('modal-title').textContent = 'Edit Request';
+    document.getElementById('modal-submit').textContent = 'Save Changes';
+    document.getElementById('status-group').style.display = 'block';
+    document.getElementById('requirements-url-group').style.display = 'block';
+
+    document.getElementById('req-title').value = currentRequest.title;
+    document.getElementById('req-target-service').value = currentRequest.target_service || '';
+    document.getElementById('req-integration-type').value = currentRequest.integration_type || 'rest_api';
+    document.getElementById('req-priority').value = currentRequest.priority || 'medium';
+    document.getElementById('req-description').value = currentRequest.description || '';
+    document.getElementById('req-api-info').value = currentRequest.api_info || '';
+    document.getElementById('req-status').value = currentRequest.status;
+    document.getElementById('req-requirements-url').value = currentRequest.requirements_url || '';
+
+    document.getElementById('request-modal').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('request-modal').classList.remove('active');
+}
+
+document.getElementById('request-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const payload = {
+        title: document.getElementById('req-title').value.trim(),
+        target_service: document.getElementById('req-target-service').value.trim(),
+        integration_type: document.getElementById('req-integration-type').value,
+        priority: document.getElementById('req-priority').value,
+        description: document.getElementById('req-description').value.trim(),
+        api_info: document.getElementById('req-api-info').value.trim() || null,
+    };
+
+    try {
+        if (editMode && currentRequest) {
+            payload.status = document.getElementById('req-status').value;
+            payload.requirements_url = document.getElementById('req-requirements-url').value.trim() || null;
+            payload.updated_at = new Date().toISOString();
+
+            const { error } = await supabase
+                .from('requests')
+                .update(payload)
+                .eq('id', currentRequest.id);
+            if (error) throw error;
+            showToast('Request updated', 'success');
+        } else {
+            payload.status = 'new';
+            payload.requested_by = currentUser.id;
+            payload.requested_by_email = currentUser.email;
+            payload.requested_by_name = currentUser.user_metadata?.full_name || currentUser.email;
+
+            const { error } = await supabase
+                .from('requests')
+                .insert(payload);
+            if (error) throw error;
+            showToast('Request created', 'success');
+        }
+
+        closeModal();
+        await loadRequests();
+
+        if (editMode && currentRequest) {
+            showDetail(currentRequest.id);
+        }
+    } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+    }
+});
+
+async function deleteCurrentRequest() {
+    if (!currentRequest) return;
+    if (!confirm('Delete this request? This cannot be undone.')) return;
+
+    const { error } = await supabase
+        .from('requests')
+        .delete()
+        .eq('id', currentRequest.id);
+
+    if (error) {
+        showToast('Error: ' + error.message, 'error');
+        return;
+    }
+
+    showToast('Request deleted', 'success');
+    showListView();
+    loadRequests();
+}
+
+// ============================================================
+// DETAIL VIEW
+// ============================================================
+async function showDetail(id) {
+    const request = allRequests.find(r => r.id === id);
+    if (!request) return;
+    currentRequest = request;
+
+    document.getElementById('list-view').style.display = 'none';
+    document.getElementById('detail-view').style.display = 'block';
+
+    document.getElementById('detail-title').textContent = request.title;
+    document.getElementById('detail-description').textContent = request.description || 'No description provided.';
+
+    // Meta
+    document.getElementById('detail-meta').innerHTML = `
+        <div class="detail-meta-item">
+            <div class="label">Status</div>
+            <div class="value"><span class="badge badge-${request.status}">${formatStatus(request.status)}</span></div>
+        </div>
+        <div class="detail-meta-item">
+            <div class="label">Priority</div>
+            <div class="value"><span class="priority-dot priority-${request.priority}"></span>${capitalize(request.priority)}</div>
+        </div>
+        <div class="detail-meta-item">
+            <div class="label">Target Service</div>
+            <div class="value">${escapeHtml(request.target_service || '-')}</div>
+        </div>
+        <div class="detail-meta-item">
+            <div class="label">Integration Type</div>
+            <div class="value">${formatIntegrationType(request.integration_type)}</div>
+        </div>
+        <div class="detail-meta-item">
+            <div class="label">Requested By</div>
+            <div class="value">${escapeHtml(request.requested_by_name || request.requested_by_email || '-')}</div>
+        </div>
+        <div class="detail-meta-item">
+            <div class="label">Created</div>
+            <div class="value">${formatDate(request.created_at)}</div>
+        </div>
+    `;
+
+    // API info
+    const apiInfoSection = document.getElementById('detail-api-info-section');
+    if (request.api_info) {
+        apiInfoSection.style.display = 'block';
+        document.getElementById('detail-api-info').textContent = request.api_info;
+    } else {
+        apiInfoSection.style.display = 'none';
+    }
+
+    // Requirements URL
+    const reqUrlSection = document.getElementById('detail-requirements-url-section');
+    if (request.requirements_url) {
+        reqUrlSection.style.display = 'block';
+        const link = document.getElementById('detail-requirements-url');
+        link.href = request.requirements_url;
+        link.textContent = request.requirements_url;
+    } else {
+        reqUrlSection.style.display = 'none';
+    }
+
+    // Load comments
+    await loadComments(id);
+}
+
+function showListView() {
+    document.getElementById('detail-view').style.display = 'none';
+    document.getElementById('list-view').style.display = 'block';
+    currentRequest = null;
+}
+
+// ============================================================
+// COMMENTS
+// ============================================================
+async function loadComments(requestId) {
+    const { data, error } = await supabase
+        .from('request_comments')
+        .select('*')
+        .eq('request_id', requestId)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('Failed to load comments:', error);
+        return;
+    }
+
+    const list = document.getElementById('comments-list');
+    if (!data || data.length === 0) {
+        list.innerHTML = '<p style="color: var(--text-muted); font-size: 0.875rem;">No comments yet.</p>';
+        return;
+    }
+
+    list.innerHTML = data.map(c => `
+        <div class="comment">
+            <div class="comment-header">
+                <span class="comment-author">${escapeHtml(c.user_name || c.user_email || 'Unknown')}</span>
+                <span class="comment-date">${formatDate(c.created_at)}</span>
+            </div>
+            <div class="comment-body">${escapeHtml(c.comment)}</div>
+        </div>
+    `).join('');
+}
+
+async function addComment() {
+    if (!currentRequest) return;
+    const input = document.getElementById('comment-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const { error } = await supabase
+        .from('request_comments')
+        .insert({
+            request_id: currentRequest.id,
+            user_id: currentUser.id,
+            user_email: currentUser.email,
+            user_name: currentUser.user_metadata?.full_name || currentUser.email,
+            comment: text
+        });
+
+    if (error) {
+        showToast('Error: ' + error.message, 'error');
+        return;
+    }
+
+    input.value = '';
+    await loadComments(currentRequest.id);
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function capitalize(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function formatStatus(status) {
+    const map = {
+        'new': 'New',
+        'researching': 'Researching',
+        'requirements_ready': 'Requirements Ready',
+        'in_review': 'In Review',
+        'approved': 'Approved',
+        'rejected': 'Rejected'
+    };
+    return map[status] || status;
+}
+
+function formatIntegrationType(type) {
+    const map = {
+        'rest_api': 'REST API',
+        'cli': 'CLI',
+        'sdk': 'SDK',
+        'database': 'Database',
+        'message_queue': 'Message Queue',
+        'other': 'Other'
+    };
+    return map[type] || type || '-';
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    return new Date(dateStr).toLocaleDateString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric'
+    });
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast toast-${type} show`;
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// Close modal on backdrop click
+document.getElementById('request-modal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeModal();
+});
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+});
+
+// ============================================================
+// REALTIME SUBSCRIPTION
+// ============================================================
+supabase
+    .channel('requests-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, () => {
+        loadRequests();
+    })
+    .subscribe();
+
+// Init
+init();
+</script>
+</body>
+</html>
