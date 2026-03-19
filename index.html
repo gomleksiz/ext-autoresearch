@@ -591,6 +591,238 @@
             margin-top: 0.25rem;
         }
 
+        /* Requirements Content */
+        .requirements-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .requirements-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .requirements-header h3 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .requirements-header .toggle-icon {
+            transition: transform 0.2s;
+            font-size: 0.75rem;
+        }
+
+        .requirements-header .toggle-icon.open {
+            transform: rotate(90deg);
+        }
+
+        .requirements-body {
+            display: none;
+            border-top: 1px solid var(--border);
+        }
+
+        .requirements-body.open {
+            display: block;
+        }
+
+        .requirements-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .requirements-rendered {
+            padding: 1.25rem;
+            font-size: 0.875rem;
+            line-height: 1.7;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .requirements-rendered h1 {
+            font-size: 1.25rem;
+            margin: 1.5rem 0 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .requirements-rendered h1:first-child {
+            margin-top: 0;
+        }
+
+        .requirements-rendered h2 {
+            font-size: 1.1rem;
+            margin: 1.25rem 0 0.5rem;
+            color: var(--accent);
+        }
+
+        .requirements-rendered h3 {
+            font-size: 0.95rem;
+            margin: 1rem 0 0.375rem;
+            color: var(--text);
+        }
+
+        .requirements-rendered p {
+            margin: 0.5rem 0;
+        }
+
+        .requirements-rendered ul, .requirements-rendered ol {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .requirements-rendered li {
+            margin: 0.25rem 0;
+        }
+
+        .requirements-rendered code {
+            background: var(--bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.8125rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+
+        .requirements-rendered pre {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 0.75rem 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .requirements-rendered pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.8125rem;
+            line-height: 1.5;
+        }
+
+        .requirements-rendered table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.75rem 0;
+            font-size: 0.8125rem;
+        }
+
+        .requirements-rendered table th,
+        .requirements-rendered table td {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .requirements-rendered table th {
+            background: var(--bg);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: none;
+            letter-spacing: 0;
+            color: var(--text);
+        }
+
+        .requirements-rendered hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 1rem 0;
+        }
+
+        .requirements-rendered strong {
+            color: var(--text);
+        }
+
+        .requirements-rendered blockquote {
+            border-left: 3px solid var(--accent);
+            padding-left: 1rem;
+            margin: 0.75rem 0;
+            color: var(--text-muted);
+        }
+
+        /* Run card expandable details */
+        .run-card {
+            cursor: pointer;
+            transition: background 0.15s;
+            flex-wrap: wrap;
+        }
+
+        .run-card:hover {
+            background: var(--surface-hover);
+        }
+
+        .run-detail {
+            display: none;
+            width: 100%;
+            padding-top: 0.75rem;
+            margin-top: 0.75rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.8125rem;
+        }
+
+        .run-detail.open {
+            display: block;
+        }
+
+        .run-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .run-detail-item .label {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .run-detail-item .value {
+            font-size: 0.875rem;
+            margin-top: 0.125rem;
+        }
+
+        .run-summary-list {
+            margin-top: 0.75rem;
+        }
+
+        .run-summary-list h4 {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 0.375rem;
+        }
+
+        .run-summary-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .run-summary-list li {
+            font-size: 0.8125rem;
+            padding: 0.25rem 0;
+            color: var(--text);
+        }
+
+        .run-summary-list li::before {
+            content: '+ ';
+            color: var(--green);
+            font-weight: bold;
+        }
+
+        .run-summary-list li.failed::before {
+            content: '! ';
+            color: var(--red);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .header { padding: 1rem; }
@@ -600,6 +832,12 @@
             .search-input { width: 100%; }
             th:nth-child(4), td:nth-child(4),
             th:nth-child(5), td:nth-child(5) { display: none; }
+            .run-metrics { gap: 0.75rem; flex-wrap: wrap; }
+            .run-card { flex-wrap: wrap; }
+            .requirements-rendered { padding: 1rem; font-size: 0.8125rem; }
+            .requirements-rendered table { font-size: 0.75rem; }
+            .requirements-rendered pre { font-size: 0.75rem; padding: 0.75rem; }
+            .detail-header { flex-direction: column; gap: 0.75rem; }
         }
     </style>
 </head>
@@ -728,6 +966,22 @@
             <div class="detail-description" id="detail-requirements-url-section" style="display: none;">
                 <h3>Requirements Document</h3>
                 <p><a id="detail-requirements-url" href="#" target="_blank" style="color: var(--accent);"></a></p>
+            </div>
+
+            <!-- Requirements Content -->
+            <div class="requirements-section" id="detail-requirements-section" style="display: none;">
+                <div class="requirements-header" onclick="toggleRequirements()">
+                    <h3>
+                        <span class="toggle-icon" id="req-toggle-icon">&#9654;</span>
+                        Generated Requirements
+                    </h3>
+                    <div class="requirements-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); copyRequirements()">Copy</button>
+                    </div>
+                </div>
+                <div class="requirements-body" id="requirements-body">
+                    <div class="requirements-rendered" id="requirements-rendered"></div>
+                </div>
             </div>
 
             <div class="comments-section">
@@ -920,9 +1174,10 @@ function showApp() {
 // REQUESTS CRUD
 // ============================================================
 async function loadRequests() {
+    // Exclude requirements_content from list query (can be large)
     const { data, error } = await db
         .from('requests')
-        .select('*')
+        .select('id,title,target_service,integration_type,status,priority,description,api_info,requirements_url,requested_by,requested_by_email,requested_by_name,created_at,updated_at')
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -1112,12 +1367,21 @@ async function deleteCurrentRequest() {
 // DETAIL VIEW
 // ============================================================
 async function showDetail(id) {
-    const request = allRequests.find(r => r.id === id);
+    let request = allRequests.find(r => r.id === id);
     if (!request) return;
+
+    // Fetch full record including requirements_content
+    const { data } = await db
+        .from('requests')
+        .select('*')
+        .eq('id', id)
+        .single();
+    if (data) request = data;
     currentRequest = request;
 
     document.getElementById('list-view').style.display = 'none';
     document.getElementById('detail-view').style.display = 'block';
+    document.getElementById('runs-section').style.display = 'none';
 
     document.getElementById('detail-title').textContent = request.title;
     document.getElementById('detail-description').textContent = request.description || 'No description provided.';
@@ -1170,6 +1434,18 @@ async function showDetail(id) {
         reqUrlSection.style.display = 'none';
     }
 
+    // Requirements Content
+    const reqSection = document.getElementById('detail-requirements-section');
+    if (request.requirements_content) {
+        reqSection.style.display = 'block';
+        document.getElementById('requirements-rendered').innerHTML = renderMarkdown(request.requirements_content);
+        // Reset collapsed state
+        document.getElementById('requirements-body').classList.remove('open');
+        document.getElementById('req-toggle-icon').classList.remove('open');
+    } else {
+        reqSection.style.display = 'none';
+    }
+
     // Load comments
     await loadComments(id);
 }
@@ -1177,6 +1453,7 @@ async function showDetail(id) {
 function showListView() {
     document.getElementById('detail-view').style.display = 'none';
     document.getElementById('list-view').style.display = 'block';
+    document.getElementById('runs-section').style.display = 'block';
     currentRequest = null;
 }
 
@@ -1290,6 +1567,98 @@ function showToast(message, type = 'success') {
     setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
+// ============================================================
+// REQUIREMENTS VIEW
+// ============================================================
+function toggleRequirements() {
+    const body = document.getElementById('requirements-body');
+    const icon = document.getElementById('req-toggle-icon');
+    body.classList.toggle('open');
+    icon.classList.toggle('open');
+}
+
+function copyRequirements() {
+    if (!currentRequest || !currentRequest.requirements_content) return;
+    navigator.clipboard.writeText(currentRequest.requirements_content).then(() => {
+        showToast('Requirements copied to clipboard', 'success');
+    }).catch(() => {
+        showToast('Failed to copy', 'error');
+    });
+}
+
+function renderMarkdown(md) {
+    if (!md) return '';
+    let html = escapeHtml(md);
+
+    // Code blocks (``` ... ```)
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+        return `<pre><code>${code.trim()}</code></pre>`;
+    });
+
+    // Inline code
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Tables
+    html = html.replace(/((?:\|[^\n]+\|\n)+)/g, (tableBlock) => {
+        const rows = tableBlock.trim().split('\n').filter(r => r.trim());
+        if (rows.length < 2) return tableBlock;
+
+        // Check if second row is a separator
+        const isSep = /^\|[\s\-:|]+\|$/.test(rows[1].trim());
+        if (!isSep) return tableBlock;
+
+        const headerCells = rows[0].split('|').filter(c => c.trim() !== '');
+        const thead = '<thead><tr>' + headerCells.map(c => `<th>${c.trim()}</th>`).join('') + '</tr></thead>';
+
+        const bodyRows = rows.slice(2);
+        const tbody = '<tbody>' + bodyRows.map(row => {
+            const cells = row.split('|').filter(c => c.trim() !== '');
+            return '<tr>' + cells.map(c => `<td>${c.trim()}</td>`).join('') + '</tr>';
+        }).join('') + '</tbody>';
+
+        return `<table>${thead}${tbody}</table>`;
+    });
+
+    // Headers (must be after code blocks to avoid matching inside them)
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+    // Horizontal rules
+    html = html.replace(/^---+$/gm, '<hr>');
+
+    // Bold and italic
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+    // Unordered lists
+    html = html.replace(/((?:^[-*] .+\n?)+)/gm, (block) => {
+        const items = block.trim().split('\n').map(line => {
+            const content = line.replace(/^[-*] /, '');
+            return `<li>${content}</li>`;
+        }).join('');
+        return `<ul>${items}</ul>`;
+    });
+
+    // Ordered lists
+    html = html.replace(/((?:^\d+\. .+\n?)+)/gm, (block) => {
+        const items = block.trim().split('\n').map(line => {
+            const content = line.replace(/^\d+\. /, '');
+            return `<li>${content}</li>`;
+        }).join('');
+        return `<ol>${items}</ol>`;
+    });
+
+    // Paragraphs (lines not already wrapped)
+    html = html.replace(/^(?!<[a-z])((?!<\/)[^\n]+)$/gm, '<p>$1</p>');
+
+    // Clean up empty paragraphs and double breaks
+    html = html.replace(/<p>\s*<\/p>/g, '');
+    html = html.replace(/\n{2,}/g, '\n');
+
+    return html;
+}
+
 // Close modal on backdrop click
 document.getElementById('request-modal').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeModal();
@@ -1326,7 +1695,7 @@ function renderRuns(runs) {
         return;
     }
 
-    container.innerHTML = runs.map(r => {
+    container.innerHTML = runs.map((r, i) => {
         const date = new Date(r.run_at);
         const timeStr = date.toLocaleString('en-US', {
             month: 'short', day: 'numeric', year: 'numeric',
@@ -1336,23 +1705,84 @@ function renderRuns(runs) {
             ? `<div class="run-errors">${r.errors.map(e => escapeHtml(e)).join('; ')}</div>`
             : '';
 
+        const isReqAgent = r.agent_name === 'requirements-agent';
+        const agentLabel = isReqAgent ? 'Requirements Agent' : 'Discovery Agent';
+
+        // Metrics adapt to agent type
+        let metricsHtml;
+        if (isReqAgent) {
+            const succeeded = r.summary?.succeeded?.length || r.new_submitted || 0;
+            const failed = r.summary?.failed?.length || 0;
+            metricsHtml = `
+                <div class="run-metric"><div class="num">${r.candidates_evaluated || 0}</div><div class="lbl">Processed</div></div>
+                <div class="run-metric"><div class="num" style="color: var(--green)">${succeeded}</div><div class="lbl">Generated</div></div>
+                ${failed > 0 ? `<div class="run-metric"><div class="num" style="color: var(--red)">${failed}</div><div class="lbl">Failed</div></div>` : ''}
+            `;
+        } else {
+            metricsHtml = `
+                <div class="run-metric"><div class="num">${r.candidates_evaluated || 0}</div><div class="lbl">Evaluated</div></div>
+                <div class="run-metric"><div class="num">${r.new_submitted || 0}</div><div class="lbl">Submitted</div></div>
+                <div class="run-metric"><div class="num">${r.duplicates_skipped || 0}</div><div class="lbl">Duplicates</div></div>
+                <div class="run-metric"><div class="num">${r.searches_performed || 0}</div><div class="lbl">Searches</div></div>
+            `;
+        }
+
+        // Expandable detail section
+        let detailHtml = '';
+        if (r.summary) {
+            let items = '';
+            if (isReqAgent && r.summary.succeeded) {
+                items += r.summary.succeeded.map(s =>
+                    `<li>${escapeHtml(s.title)}</li>`
+                ).join('');
+                if (r.summary.failed && r.summary.failed.length) {
+                    items += r.summary.failed.map(f =>
+                        `<li class="failed">${escapeHtml(f.title)}: ${escapeHtml(f.error || 'unknown error')}</li>`
+                    ).join('');
+                }
+            } else if (!isReqAgent) {
+                if (r.summary.competitor_research) {
+                    const gaps = Object.entries(r.summary.competitor_research)
+                        .filter(([, v]) => v.gaps_flagged && v.gaps_flagged.length)
+                        .map(([k, v]) => `${k}: ${v.gaps_flagged.join(', ')}`);
+                    if (gaps.length) {
+                        items += `<li>Competitor gaps: ${escapeHtml(gaps.join(' | '))}</li>`;
+                    }
+                }
+                if (r.summary.duplicates && r.summary.duplicates.length) {
+                    items += `<li>Duplicates skipped: ${r.summary.duplicates.map(d => escapeHtml(d.title)).join(', ')}</li>`;
+                }
+            }
+            if (items) {
+                detailHtml = `
+                    <div class="run-detail" id="run-detail-${i}">
+                        <div class="run-summary-list">
+                            <h4>Details</h4>
+                            <ul>${items}</ul>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
         return `
-            <div class="run-card">
+            <div class="run-card" onclick="toggleRunDetail(${i})">
                 <div class="run-status-dot ${r.status}"></div>
                 <div class="run-info">
                     <div class="run-date">${timeStr}</div>
-                    <div class="run-agent">${escapeHtml(r.agent_name)}</div>
+                    <div class="run-agent">${escapeHtml(agentLabel)}</div>
                     ${errHtml}
                 </div>
-                <div class="run-metrics">
-                    <div class="run-metric"><div class="num">${r.candidates_evaluated || 0}</div><div class="lbl">Evaluated</div></div>
-                    <div class="run-metric"><div class="num">${r.new_submitted || 0}</div><div class="lbl">Submitted</div></div>
-                    <div class="run-metric"><div class="num">${r.duplicates_skipped || 0}</div><div class="lbl">Duplicates</div></div>
-                    <div class="run-metric"><div class="num">${r.searches_performed || 0}</div><div class="lbl">Searches</div></div>
-                </div>
+                <div class="run-metrics">${metricsHtml}</div>
+                ${detailHtml}
             </div>
         `;
     }).join('');
+}
+
+function toggleRunDetail(index) {
+    const el = document.getElementById('run-detail-' + index);
+    if (el) el.classList.toggle('open');
 }
 
 // ============================================================
