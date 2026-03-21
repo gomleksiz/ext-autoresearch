@@ -823,6 +823,50 @@
             color: var(--red);
         }
 
+        /* Quick action buttons in table */
+        .quick-actions {
+            display: flex;
+            gap: 0.375rem;
+        }
+
+        .quick-actions button {
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.6875rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid;
+            background: transparent;
+            white-space: nowrap;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .btn-quick-reject {
+            color: var(--red);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-quick-reject:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--red);
+        }
+
+        .btn-quick-critical {
+            color: var(--orange);
+            border-color: rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-quick-critical:hover {
+            background: rgba(249, 115, 22, 0.15);
+            border-color: var(--orange);
+        }
+
+        .created-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .header { padding: 1rem; }
@@ -831,7 +875,8 @@
             .toolbar-left { flex-direction: column; }
             .search-input { width: 100%; }
             th:nth-child(4), td:nth-child(4),
-            th:nth-child(5), td:nth-child(5) { display: none; }
+            th:nth-child(5), td:nth-child(5),
+            th:nth-child(7), td:nth-child(7) { display: none; }
             .run-metrics { gap: 0.75rem; flex-wrap: wrap; }
             .run-card { flex-wrap: wrap; }
             .requirements-rendered { padding: 1rem; font-size: 0.8125rem; }
@@ -1237,6 +1282,7 @@ function renderRequests() {
                     <th>Priority</th>
                     <th>Type</th>
                     <th>Created</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -1247,7 +1293,13 @@ function renderRequests() {
                         <td><span class="badge badge-${r.status}">${formatStatus(r.status)}</span></td>
                         <td><span class="priority-dot priority-${r.priority}"></span>${capitalize(r.priority)}</td>
                         <td>${formatIntegrationType(r.integration_type)}</td>
-                        <td>${formatDate(r.created_at)}</td>
+                        <td><div>${formatDate(r.created_at)}</div><div class="created-time">${formatTime(r.created_at)}</div></td>
+                        <td>
+                            <div class="quick-actions">
+                                ${r.status !== 'rejected' ? `<button class="btn-quick-reject" onclick="event.stopPropagation(); quickReject('${r.id}')">Reject</button>` : ''}
+                                ${r.priority !== 'critical' ? `<button class="btn-quick-critical" onclick="event.stopPropagation(); quickCritical('${r.id}')">Critical</button>` : ''}
+                            </div>
+                        </td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -1560,11 +1612,47 @@ function formatDate(dateStr) {
     });
 }
 
+function formatTime(dateStr) {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleTimeString('en-US', {
+        hour: '2-digit', minute: '2-digit'
+    });
+}
+
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     toast.textContent = message;
     toast.className = `toast toast-${type} show`;
     setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// QUICK ACTIONS
+// ============================================================
+async function quickReject(id) {
+    const { error } = await db
+        .from('requests')
+        .update({ status: 'rejected', updated_at: new Date().toISOString() })
+        .eq('id', id);
+    if (error) {
+        showToast('Error: ' + error.message, 'error');
+        return;
+    }
+    showToast('Request rejected', 'success');
+    await loadRequests();
+}
+
+async function quickCritical(id) {
+    const { error } = await db
+        .from('requests')
+        .update({ priority: 'critical', updated_at: new Date().toISOString() })
+        .eq('id', id);
+    if (error) {
+        showToast('Error: ' + error.message, 'error');
+        return;
+    }
+    showToast('Priority set to Critical', 'success');
+    await loadRequests();
 }
 
 // ============================================================
