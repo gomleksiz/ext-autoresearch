@@ -282,6 +282,8 @@
         .badge-researching { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
         .badge-requirements_ready { background: rgba(234, 179, 8, 0.15); color: var(--yellow); }
         .badge-in_review { background: rgba(249, 115, 22, 0.15); color: var(--orange); }
+        .badge-analysis_complete { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+        .badge-accepted { background: rgba(34, 197, 94, 0.15); color: var(--green); }
         .badge-approved { background: rgba(34, 197, 94, 0.15); color: var(--green); }
         .badge-rejected { background: rgba(239, 68, 68, 0.15); color: var(--red); }
 
@@ -862,6 +864,16 @@
             border-color: var(--orange);
         }
 
+        .btn-quick-accept {
+            color: var(--green);
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-quick-accept:hover {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: var(--green);
+        }
+
         .created-time {
             font-size: 0.75rem;
             color: var(--text-muted);
@@ -964,6 +976,8 @@
                         <option value="researching">Researching</option>
                         <option value="requirements_ready">Requirements Ready</option>
                         <option value="in_review">In Review</option>
+                        <option value="analysis_complete">Analysis Complete</option>
+                        <option value="accepted">Accepted</option>
                         <option value="approved">Approved</option>
                         <option value="rejected">Rejected</option>
                     </select>
@@ -1296,7 +1310,8 @@ function renderRequests() {
                         <td><div>${formatDate(r.created_at)}</div><div class="created-time">${formatTime(r.created_at)}</div></td>
                         <td>
                             <div class="quick-actions">
-                                ${r.status !== 'rejected' ? `<button class="btn-quick-reject" onclick="event.stopPropagation(); quickReject('${r.id}')">Reject</button>` : ''}
+                                ${(r.status === 'in_review' || r.status === 'analysis_complete') ? `<button class="btn-quick-accept" onclick="event.stopPropagation(); quickAccept('${r.id}')">Accept</button>` : ''}
+                                ${r.status !== 'rejected' && r.status !== 'accepted' ? `<button class="btn-quick-reject" onclick="event.stopPropagation(); quickReject('${r.id}')">Reject</button>` : ''}
                                 ${r.priority !== 'critical' ? `<button class="btn-quick-critical" onclick="event.stopPropagation(); quickCritical('${r.id}')">Critical</button>` : ''}
                             </div>
                         </td>
@@ -1587,6 +1602,8 @@ function formatStatus(status) {
         'researching': 'Researching',
         'requirements_ready': 'Requirements Ready',
         'in_review': 'In Review',
+        'analysis_complete': 'Analysis Complete',
+        'accepted': 'Accepted',
         'approved': 'Approved',
         'rejected': 'Rejected'
     };
@@ -1639,6 +1656,19 @@ async function quickReject(id) {
         return;
     }
     showToast('Request rejected', 'success');
+    await loadRequests();
+}
+
+async function quickAccept(id) {
+    const { error } = await db
+        .from('requests')
+        .update({ status: 'accepted', updated_at: new Date().toISOString() })
+        .eq('id', id);
+    if (error) {
+        showToast('Error: ' + error.message, 'error');
+        return;
+    }
+    showToast('Request accepted', 'success');
     await loadRequests();
 }
 
