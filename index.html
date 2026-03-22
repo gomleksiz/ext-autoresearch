@@ -874,6 +874,43 @@
             border-color: var(--green);
         }
 
+        .vote-buttons {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .btn-vote {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 0.15rem 0.35rem;
+            font-size: 0.8rem;
+            line-height: 1;
+            transition: all 0.15s;
+            color: var(--text-muted);
+        }
+
+        .btn-vote:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-vote.up:hover { border-color: var(--green); color: var(--green); }
+        .btn-vote.down:hover { border-color: var(--red); color: var(--red); }
+
+        .vote-count {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            min-width: 1.5rem;
+            text-align: center;
+        }
+
+        .vote-count.positive { color: var(--green); }
+        .vote-count.negative { color: var(--red); }
+        .vote-count.zero { color: var(--text-muted); }
+
         .created-time {
             font-size: 0.75rem;
             color: var(--text-muted);
@@ -886,9 +923,9 @@
             .toolbar { flex-direction: column; align-items: stretch; }
             .toolbar-left { flex-direction: column; }
             .search-input { width: 100%; }
-            th:nth-child(4), td:nth-child(4),
             th:nth-child(5), td:nth-child(5),
-            th:nth-child(7), td:nth-child(7) { display: none; }
+            th:nth-child(6), td:nth-child(6),
+            th:nth-child(8), td:nth-child(8) { display: none; }
             .run-metrics { gap: 0.75rem; flex-wrap: wrap; }
             .run-card { flex-wrap: wrap; }
             .requirements-rendered { padding: 1rem; font-size: 0.8125rem; }
@@ -987,6 +1024,12 @@
                         <option value="medium">Medium</option>
                         <option value="high">High</option>
                         <option value="critical">Critical</option>
+                    </select>
+                    <select class="filter-select" id="sort-select">
+                        <option value="updated_at">Sort: Last Updated</option>
+                        <option value="votes">Sort: Votes</option>
+                        <option value="priority">Sort: Priority</option>
+                        <option value="created_at">Sort: Created</option>
                     </select>
                 </div>
                 <button class="btn btn-primary" onclick="openNewRequestModal()">+ New Request</button>
@@ -1236,8 +1279,8 @@ async function loadRequests() {
     // Exclude requirements_content from list query (can be large)
     const { data, error } = await db
         .from('requests')
-        .select('id,title,target_service,integration_type,status,priority,description,api_info,requirements_url,requested_by,requested_by_email,requested_by_name,created_at,updated_at')
-        .order('created_at', { ascending: false });
+        .select('id,title,target_service,integration_type,status,priority,description,api_info,requirements_url,requested_by,requested_by_email,requested_by_name,created_at,updated_at,votes')
+        .order('updated_at', { ascending: false });
 
     if (error) {
         showToast('Failed to load requests: ' + error.message, 'error');
@@ -1273,8 +1316,29 @@ function getFilteredRequests() {
     });
 }
 
+function sortRequests(requests) {
+    const sortBy = document.getElementById('sort-select').value;
+    const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+
+    return [...requests].sort((a, b) => {
+        if (sortBy === 'votes') {
+            const diff = (b.votes || 0) - (a.votes || 0);
+            return diff !== 0 ? diff : new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+        }
+        if (sortBy === 'priority') {
+            const diff = (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99);
+            return diff !== 0 ? diff : new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+        }
+        if (sortBy === 'created_at') {
+            return new Date(b.created_at) - new Date(a.created_at);
+        }
+        // Default: updated_at
+        return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+    });
+}
+
 function renderRequests() {
-    const filtered = getFilteredRequests();
+    const filtered = sortRequests(getFilteredRequests());
     const container = document.getElementById('requests-table');
 
     if (filtered.length === 0) {
@@ -1290,24 +1354,32 @@ function renderRequests() {
         <table>
             <thead>
                 <tr>
+                    <th>Votes</th>
                     <th>Title</th>
                     <th>Service</th>
                     <th>Status</th>
                     <th>Priority</th>
                     <th>Type</th>
-                    <th>Created</th>
+                    <th>Updated</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 ${filtered.map(r => `
                     <tr class="clickable-row" onclick="showDetail('${r.id}')">
+                        <td>
+                            <div class="vote-buttons">
+                                <button class="btn-vote up" onclick="event.stopPropagation(); vote('${r.id}', 1)" title="Thumbs up">&#9650;</button>
+                                <span class="vote-count ${(r.votes || 0) > 0 ? 'positive' : (r.votes || 0) < 0 ? 'negative' : 'zero'}">${r.votes || 0}</span>
+                                <button class="btn-vote down" onclick="event.stopPropagation(); vote('${r.id}', -1)" title="Thumbs down">&#9660;</button>
+                            </div>
+                        </td>
                         <td><strong>${escapeHtml(r.title)}</strong></td>
                         <td>${escapeHtml(r.target_service || '-')}</td>
                         <td><span class="badge badge-${r.status}">${formatStatus(r.status)}</span></td>
                         <td><span class="priority-dot priority-${r.priority}"></span>${capitalize(r.priority)}</td>
                         <td>${formatIntegrationType(r.integration_type)}</td>
-                        <td><div>${formatDate(r.created_at)}</div><div class="created-time">${formatTime(r.created_at)}</div></td>
+                        <td><div>${formatDate(r.updated_at || r.created_at)}</div><div class="created-time">${formatTime(r.updated_at || r.created_at)}</div></td>
                         <td>
                             <div class="quick-actions">
                                 ${(r.status === 'in_review' || r.status === 'analysis_complete') ? `<button class="btn-quick-accept" onclick="event.stopPropagation(); quickAccept('${r.id}')">Accept</button>` : ''}
@@ -1325,6 +1397,7 @@ function renderRequests() {
 document.getElementById('search-input').addEventListener('input', renderRequests);
 document.getElementById('status-filter').addEventListener('change', renderRequests);
 document.getElementById('priority-filter').addEventListener('change', renderRequests);
+document.getElementById('sort-select').addEventListener('change', renderRequests);
 
 // ============================================================
 // CREATE / EDIT
@@ -1657,6 +1730,24 @@ async function quickReject(id) {
     }
     showToast('Request rejected', 'success');
     await loadRequests();
+}
+
+async function vote(id, delta) {
+    const request = allRequests.find(r => r.id === id);
+    if (!request) return;
+    const newVotes = (request.votes || 0) + delta;
+    const { error } = await db
+        .from('requests')
+        .update({ votes: newVotes, updated_at: new Date().toISOString() })
+        .eq('id', id);
+    if (error) {
+        showToast('Error: ' + error.message, 'error');
+        return;
+    }
+    // Update local data immediately for snappy UI
+    request.votes = newVotes;
+    request.updated_at = new Date().toISOString();
+    renderRequests();
 }
 
 async function quickAccept(id) {
