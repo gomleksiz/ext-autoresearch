@@ -1,7 +1,7 @@
 ---
 name: kickstart-setup
 branch: feature/kickstart-setup
-status: pending
+status: completed
 created: 2025-10-02
 submodules: []
 ---
@@ -10,8 +10,8 @@ submodules: []
 We need a dummy task to show the user how task-startup and task-completion protocols work.
 
 ## Success Criteria
-- [ ] Finish task startup
-- [ ] Start task completion
+- [x] Finish task startup
+- [x] Start task completion
 
 ## Context Manifest
 Fake context manifest
