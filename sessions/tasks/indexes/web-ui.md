@@ -11,7 +11,6 @@ description: Tasks related to the frontend web interface (index.html) — render
 ### High Priority
 
 ### Medium Priority
-- `m-implement-better-logs.md` - Add notes/summary display for successful Agent runs in run history
 
 ### Low Priority
 
@@ -19,3 +18,4 @@ description: Tasks related to the frontend web interface (index.html) — render
 
 ## Completed Tasks
 <!-- Move tasks here when completed, maintaining the format -->
+- `m-implement-better-logs.md` - Add notes/summary display for successful Agent runs in run history

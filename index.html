@@ -658,6 +658,17 @@
             margin-top: 0.25rem;
         }
 
+        .run-notes {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+            line-height: 1.4;
+        }
+
+        .run-notes.partial {
+            color: var(--yellow);
+        }
+
         /* Requirements Content */
         .requirements-section {
             background: var(--surface);
@@ -2051,12 +2062,71 @@ async function loadRuns() {
     renderRuns(data || []);
 }
 
+function generateRunNotes(r) {
+    const s = r.summary;
+    if (!s) return '';
+    switch (r.agent_name) {
+        case 'discovery-agent': {
+            const parts = [];
+            if (s.competitor_research) {
+                const gapCount = Object.values(s.competitor_research)
+                    .reduce((n, v) => n + (v.gaps_flagged?.length || 0), 0);
+                if (gapCount) parts.push(`${gapCount} competitor gaps found`);
+            }
+            if (s.below_threshold && s.below_threshold.length) {
+                const titles = s.below_threshold.map(x => x.title).slice(0, 3).join(', ');
+                parts.push(`Below threshold: ${titles}${s.below_threshold.length > 3 ? '...' : ''}`);
+            }
+            return parts.join('. ');
+        }
+        case 'requirements-agent': {
+            const parts = [];
+            const succeeded = s.succeeded?.length || 0;
+            const failed = s.failed?.length || 0;
+            if (succeeded) {
+                const titles = s.succeeded.map(x => x.title).join(', ');
+                parts.push(`Generated requirements for: ${titles}`);
+            }
+            if (failed) parts.push(`${failed} failed`);
+            return parts.join('. ');
+        }
+        case 'analysis-agent': {
+            const parts = [];
+            if (s.request_title) parts.push(s.request_title);
+            if (s.target_service) parts.push(`(${s.target_service})`);
+            if (s.phases) {
+                const phaseList = Object.entries(s.phases)
+                    .map(([k, v]) => `${k}: ${v}`)
+                    .join(', ');
+                parts.push(`Phases: ${phaseList}`);
+            }
+            return parts.join(' — ');
+        }
+        case 'prompt-optimizer': {
+            const parts = [];
+            if (s.action) parts.push(`Action: ${s.action}`);
+            if (s.last_run_new_ideas != null) parts.push(`${s.last_run_new_ideas} new ideas from last run`);
+            if (s.reason) parts.push(s.reason);
+            return parts.join('. ');
+        }
+        default:
+            return '';
+    }
+}
+
 function renderRuns(runs) {
     const container = document.getElementById('runs-list');
     if (runs.length === 0) {
         container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.875rem;">No agent runs yet.</p>';
         return;
     }
+
+    const agentLabels = {
+        'discovery-agent': 'Discovery Agent',
+        'requirements-agent': 'Requirements Agent',
+        'analysis-agent': 'Analysis Agent',
+        'prompt-optimizer': 'Prompt Optimizer'
+    };
 
     container.innerHTML = runs.map((r, i) => {
         const date = new Date(r.run_at);
@@ -2068,53 +2138,101 @@ function renderRuns(runs) {
             ? `<div class="run-errors">${r.errors.map(e => escapeHtml(e)).join('; ')}</div>`
             : '';
 
-        const isReqAgent = r.agent_name === 'requirements-agent';
-        const agentLabel = isReqAgent ? 'Requirements Agent' : 'Discovery Agent';
+        // Generate notes for successful runs
+        const notes = generateRunNotes(r);
+        const notesHtml = (notes && r.status !== 'failed')
+            ? `<div class="run-notes${r.status === 'partial' ? ' partial' : ''}">${escapeHtml(notes)}</div>`
+            : '';
+
+        const agentLabel = agentLabels[r.agent_name] || r.agent_name;
 
         // Metrics adapt to agent type
         let metricsHtml;
-        if (isReqAgent) {
-            const succeeded = r.summary?.succeeded?.length || r.new_submitted || 0;
-            const failed = r.summary?.failed?.length || 0;
-            metricsHtml = `
-                <div class="run-metric"><div class="num">${r.candidates_evaluated || 0}</div><div class="lbl">Processed</div></div>
-                <div class="run-metric"><div class="num" style="color: var(--green)">${succeeded}</div><div class="lbl">Generated</div></div>
-                ${failed > 0 ? `<div class="run-metric"><div class="num" style="color: var(--red)">${failed}</div><div class="lbl">Failed</div></div>` : ''}
-            `;
-        } else {
-            metricsHtml = `
-                <div class="run-metric"><div class="num">${r.candidates_evaluated || 0}</div><div class="lbl">Evaluated</div></div>
-                <div class="run-metric"><div class="num">${r.new_submitted || 0}</div><div class="lbl">Submitted</div></div>
-                <div class="run-metric"><div class="num">${r.duplicates_skipped || 0}</div><div class="lbl">Duplicates</div></div>
-                <div class="run-metric"><div class="num">${r.searches_performed || 0}</div><div class="lbl">Searches</div></div>
-            `;
+        switch (r.agent_name) {
+            case 'requirements-agent': {
+                const succeeded = r.summary?.succeeded?.length || r.new_submitted || 0;
+                const failed = r.summary?.failed?.length || 0;
+                metricsHtml = `
+                    <div class="run-metric"><div class="num">${r.candidates_evaluated || 0}</div><div class="lbl">Processed</div></div>
+                    <div class="run-metric"><div class="num" style="color: var(--green)">${succeeded}</div><div class="lbl">Generated</div></div>
+                    ${failed > 0 ? `<div class="run-metric"><div class="num" style="color: var(--red)">${failed}</div><div class="lbl">Failed</div></div>` : ''}
+                `;
+                break;
+            }
+            case 'analysis-agent': {
+                const phases = r.summary?.phases || {};
+                const total = Object.keys(phases).length;
+                const passed = Object.values(phases).filter(v => v === 'success').length;
+                metricsHtml = `
+                    <div class="run-metric"><div class="num" style="color: var(--green)">${passed}/${total}</div><div class="lbl">Phases</div></div>
+                `;
+                break;
+            }
+            case 'prompt-optimizer': {
+                const action = r.summary?.action || '—';
+                metricsHtml = `
+                    <div class="run-metric"><div class="num" style="font-size: 0.8rem">${escapeHtml(action)}</div><div class="lbl">Action</div></div>
+                `;
+                break;
+            }
+            default: // discovery-agent
+                metricsHtml = `
+                    <div class="run-metric"><div class="num">${r.candidates_evaluated || 0}</div><div class="lbl">Evaluated</div></div>
+                    <div class="run-metric"><div class="num">${r.new_submitted || 0}</div><div class="lbl">Submitted</div></div>
+                    <div class="run-metric"><div class="num">${r.duplicates_skipped || 0}</div><div class="lbl">Duplicates</div></div>
+                    <div class="run-metric"><div class="num">${r.searches_performed || 0}</div><div class="lbl">Searches</div></div>
+                `;
         }
 
         // Expandable detail section
         let detailHtml = '';
         if (r.summary) {
             let items = '';
-            if (isReqAgent && r.summary.succeeded) {
-                items += r.summary.succeeded.map(s =>
-                    `<li>${escapeHtml(s.title)}</li>`
-                ).join('');
-                if (r.summary.failed && r.summary.failed.length) {
-                    items += r.summary.failed.map(f =>
-                        `<li class="failed">${escapeHtml(f.title)}: ${escapeHtml(f.error || 'unknown error')}</li>`
-                    ).join('');
-                }
-            } else if (!isReqAgent) {
-                if (r.summary.competitor_research) {
-                    const gaps = Object.entries(r.summary.competitor_research)
-                        .filter(([, v]) => v.gaps_flagged && v.gaps_flagged.length)
-                        .map(([k, v]) => `${k}: ${v.gaps_flagged.join(', ')}`);
-                    if (gaps.length) {
-                        items += `<li>Competitor gaps: ${escapeHtml(gaps.join(' | '))}</li>`;
+            switch (r.agent_name) {
+                case 'requirements-agent':
+                    if (r.summary.succeeded) {
+                        items += r.summary.succeeded.map(s =>
+                            `<li>${escapeHtml(s.title)}</li>`
+                        ).join('');
                     }
-                }
-                if (r.summary.duplicates && r.summary.duplicates.length) {
-                    items += `<li>Duplicates skipped: ${r.summary.duplicates.map(d => escapeHtml(d.title)).join(', ')}</li>`;
-                }
+                    if (r.summary.failed && r.summary.failed.length) {
+                        items += r.summary.failed.map(f =>
+                            `<li class="failed">${escapeHtml(f.title)}: ${escapeHtml(f.error || 'unknown error')}</li>`
+                        ).join('');
+                    }
+                    break;
+                case 'analysis-agent':
+                    if (r.summary.phases) {
+                        items += Object.entries(r.summary.phases).map(([phase, status]) =>
+                            `<li${status !== 'success' ? ' class="failed"' : ''}>${escapeHtml(phase)}: ${escapeHtml(status)}</li>`
+                        ).join('');
+                    }
+                    if (r.summary.workspace) {
+                        items += `<li>Workspace: ${escapeHtml(r.summary.workspace)}</li>`;
+                    }
+                    break;
+                case 'prompt-optimizer':
+                    if (r.summary.analysis) {
+                        const a = r.summary.analysis.length > 200 ? r.summary.analysis.substring(0, r.summary.analysis.lastIndexOf(' ', 200)) + '...' : r.summary.analysis;
+                        items += `<li>${escapeHtml(a)}</li>`;
+                    }
+                    if (r.summary.changes) {
+                        const c = r.summary.changes.length > 200 ? r.summary.changes.substring(0, r.summary.changes.lastIndexOf(' ', 200)) + '...' : r.summary.changes;
+                        items += `<li>${escapeHtml(c)}</li>`;
+                    }
+                    break;
+                default: // discovery-agent
+                    if (r.summary.competitor_research) {
+                        const gaps = Object.entries(r.summary.competitor_research)
+                            .filter(([, v]) => v.gaps_flagged && v.gaps_flagged.length)
+                            .map(([k, v]) => `${k}: ${v.gaps_flagged.join(', ')}`);
+                        if (gaps.length) {
+                            items += `<li>Competitor gaps: ${escapeHtml(gaps.join(' | '))}</li>`;
+                        }
+                    }
+                    if (r.summary.duplicates && r.summary.duplicates.length) {
+                        items += `<li>Duplicates skipped: ${r.summary.duplicates.map(d => escapeHtml(d.title)).join(', ')}</li>`;
+                    }
             }
             if (items) {
                 detailHtml = `
@@ -2135,6 +2253,7 @@ function renderRuns(runs) {
                     <div class="run-date">${timeStr}</div>
                     <div class="run-agent">${escapeHtml(agentLabel)}</div>
                     ${errHtml}
+                    ${notesHtml}
                 </div>
                 <div class="run-metrics">${metricsHtml}</div>
                 ${detailHtml}
