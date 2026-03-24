@@ -1,7 +1,7 @@
 ---
 name: m-implement-trial-detection
 branch: feature/trial-detection
-status: pending
+status: in-progress
 created: 2026-03-24
 ---
 
