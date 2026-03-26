@@ -287,6 +287,11 @@
         .badge-approved { background: rgba(34, 197, 94, 0.15); color: var(--green); }
         .badge-rejected { background: rgba(239, 68, 68, 0.15); color: var(--red); }
 
+        .badge-trial-yes { background: rgba(34, 197, 94, 0.15); color: var(--green); }
+        .badge-trial-account_available { background: rgba(34, 197, 94, 0.15); color: var(--green); }
+        .badge-trial-no { background: rgba(139, 141, 152, 0.15); color: var(--text-muted); }
+        .badge-trial-unknown { background: transparent; color: var(--text-muted); font-style: italic; }
+
         .priority-dot {
             display: inline-block;
             width: 8px;
@@ -1101,6 +1106,13 @@
                         <option value="high">High</option>
                         <option value="critical">Critical</option>
                     </select>
+                    <select class="filter-select" id="trial-filter">
+                        <option value="">All Trial Status</option>
+                        <option value="yes">Trial Available</option>
+                        <option value="account_available">Account Available</option>
+                        <option value="no">No Trial</option>
+                        <option value="unknown">Unknown</option>
+                    </select>
                     <select class="filter-select" id="sort-select">
                         <option value="updated_at">Sort: Last Updated</option>
                         <option value="votes">Sort: Votes</option>
@@ -1369,7 +1381,7 @@ async function loadRequests() {
     // Exclude requirements_content from list query (can be large)
     const { data, error } = await db
         .from('requests')
-        .select('id,title,target_service,integration_type,status,priority,description,api_info,requirements_url,requested_by,requested_by_email,requested_by_name,created_at,updated_at,votes')
+        .select('id,title,target_service,integration_type,status,priority,description,api_info,requirements_url,requested_by,requested_by_email,requested_by_name,created_at,updated_at,votes,trial_available')
         .order('updated_at', { ascending: false });
 
     if (error) {
@@ -1394,6 +1406,7 @@ function getFilteredRequests() {
     const search = document.getElementById('search-input').value.toLowerCase();
     const statusFilter = document.getElementById('status-filter').value;
     const priorityFilter = document.getElementById('priority-filter').value;
+    const trialFilter = document.getElementById('trial-filter').value;
 
     return allRequests.filter(r => {
         const matchSearch = !search ||
@@ -1402,7 +1415,8 @@ function getFilteredRequests() {
             (r.description && r.description.toLowerCase().includes(search));
         const matchStatus = !statusFilter || r.status === statusFilter;
         const matchPriority = !priorityFilter || r.priority === priorityFilter;
-        return matchSearch && matchStatus && matchPriority;
+        const matchTrial = !trialFilter || (r.trial_available || 'unknown') === trialFilter;
+        return matchSearch && matchStatus && matchPriority && matchTrial;
     });
 }
 
@@ -1450,6 +1464,7 @@ function renderRequests() {
                     <th>Status</th>
                     <th>Priority</th>
                     <th>Type</th>
+                    <th>Trial</th>
                     <th>Updated</th>
                     <th>Actions</th>
                 </tr>
@@ -1469,6 +1484,7 @@ function renderRequests() {
                         <td><span class="badge badge-${r.status}">${formatStatus(r.status)}</span></td>
                         <td><span class="priority-dot priority-${r.priority}"></span>${capitalize(r.priority)}</td>
                         <td>${formatIntegrationType(r.integration_type)}</td>
+                        <td>${formatTrialBadge(r.trial_available)}</td>
                         <td><div>${formatDate(r.updated_at || r.created_at)}</div><div class="created-time">${formatTime(r.updated_at || r.created_at)}</div></td>
                         <td>
                             <div class="quick-actions">
@@ -1487,6 +1503,7 @@ function renderRequests() {
 document.getElementById('search-input').addEventListener('input', renderRequests);
 document.getElementById('status-filter').addEventListener('change', renderRequests);
 document.getElementById('priority-filter').addEventListener('change', renderRequests);
+document.getElementById('trial-filter').addEventListener('change', renderRequests);
 document.getElementById('sort-select').addEventListener('change', renderRequests);
 
 // ============================================================
@@ -1710,6 +1727,10 @@ async function showDetail(id) {
             <div class="value">${formatIntegrationType(request.integration_type)}</div>
         </div>
         <div class="detail-meta-item">
+            <div class="label">Trial Availability</div>
+            <div class="value">${formatTrialBadge(request.trial_available)}</div>
+        </div>
+        <div class="detail-meta-item">
             <div class="label">Requested By</div>
             <div class="value">${escapeHtml(request.requested_by_name || request.requested_by_email || '-')}</div>
         </div>
@@ -1858,6 +1879,18 @@ function formatIntegrationType(type) {
         'other': 'Other'
     };
     return map[type] || type || '-';
+}
+
+function formatTrialBadge(trial) {
+    const map = {
+        'yes': 'Trial',
+        'account_available': 'Account',
+        'no': 'No Trial',
+        'unknown': 'Unknown'
+    };
+    const label = map[trial] || 'Unknown';
+    const cls = trial || 'unknown';
+    return `<span class="badge badge-trial-${cls}">${label}</span>`;
 }
 
 function formatDate(dateStr) {
